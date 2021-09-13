@@ -1,1 +1,28 @@
 
+{  
+   "personas":[  
+      {  
+         "ci":4594569,
+         "nombre":"Alexis Gonzalez",
+         "casado":false,
+         "hijos":[  
+
+         ]
+      },
+      {  
+         "ci":7654321,
+         "nombre":"Juan Gómez",
+         "casado":true,
+         "hijos":[  
+            {  
+               "nombre":"Rosa",
+               "edad":18
+            },
+            {  
+               "nombre":"Mariela",
+               "edad":16
+            }
+         ]
+      }
+   ]
+}
