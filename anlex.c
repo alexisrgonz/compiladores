@@ -5,14 +5,10 @@
  *	Alumno: Alexis Gonzalez
  */
 
-/*********** Inclusion de cabecera **************/
 #include "anlex.h"
 
-
-/************* Variables globales **************/
-
 int consumir;			/* 1 indica al analizador lexico que debe devolver
-						el sgte componente lexico, 0 debe devolver el actual */
+				el siguiente componente lexico, 0 debe devolver el actual */
 
 char cad[5*TAMLEX];		// string utilizado para cargar mensajes de error
 token t;				// token global para recibir componentes del Analizador Lexico
@@ -29,18 +25,19 @@ int fin=0;				// Utilizado por el analizador lexico
 int numLinea=1;			// Numero de Linea
 int x;
 char addEspacio[500];
-/**************** Funciones **********************/
 
+int valido = 1;
+/**************** Funciones **********************/
 
 // Rutinas del analizador lexico
 
 void error(const char* mensaje)
 {
-	fprintf(fichero,"Lin %d: Error Lexico. %s.\n",numLinea,mensaje);
+	fprintf(fichero,"\nLin %d: Error Lexico. %s.\n",numLinea,mensaje);
 	printf("Lin %d: Error Lexico. %s.\n",numLinea,mensaje);	
 }
 
-void getToken(){
+void sigLex(){
 	int cierre=0; //0 = Inicio; 1 = Cierre 
 	x=0;
 	int i=0;
@@ -111,6 +108,8 @@ void getToken(){
 				strcpy(e.lexema,id);
 			    e.compLex= LITERAL_CADENA;
 	            insertar(e);
+				t.comp="LITERAL_CADENA";
+				t.tipo_lexema = "LITERAL_CADENA";
 				t.pe=buscar(id);
         	    t.compLex=LITERAL_CADENA;
 			}
@@ -232,6 +231,8 @@ void getToken(){
 							strcpy(e.lexema,id);
 							e.compLex=LITERAL_NUM;
 							insertar(e);
+							t.comp="LITERAL_NUM";
+							t.tipo_lexema = "LITERAL_NUM";
 							t.pe=buscar(id);
 						}
 						t.compLex=LITERAL_NUM;
@@ -256,24 +257,32 @@ void getToken(){
 		{
 			//puede ser un : o un operador de asignacion
 			t.compLex=DOS_PUNTOS;
+			t.comp="DOS_PUNTOS";
+			t.tipo_lexema=":";
 			t.pe=buscar(":");
 			break;
 		}
 		else if (c==',')
 		{
 			t.compLex=COMA;
+			t.comp="COMA";
+			t.tipo_lexema=",";
 			t.pe=buscar(",");
 			break;
 		}
 		else if (c=='[')
 		{
 			t.compLex=L_CORCHETE;
+			t.comp="L_CORCHETE";
+			t.tipo_lexema="[";
 			t.pe=buscar("[");
 			break;
 		}
 		else if (c==']')
 		{
 			t.compLex=R_CORCHETE;
+			t.comp="R_CORCHETE";
+			t.tipo_lexema="]";
 			t.pe=buscar("]");
 			break;
 		}
@@ -290,8 +299,31 @@ void getToken(){
 			sprintf( palabra_reservada ,"%s",id); //carga la palabra la variable {0}
 			//if(strcmp(tolower(palabra_reservada),"null")==0 || strcmp(tolower(palabra_reservada),"false")==0 || strcmp(tolower(palabra_reservada),"true")==0 ){
 			if(strcmp(palabra_reservada,"null")==0 || strcmp(palabra_reservada,"false")==0 || strcmp(palabra_reservada,"true")==0 ){
+				if ( strcmp(palabra_reservada,"false")==0)
+				{
+					
+					t.compLex=PR_NULL;
+					t.comp="PR_NULL";
+					t.tipo_lexema = "PR_NULL";
+
+				} else if (strcmp(palabra_reservada,"false")==0)
+				{
+					
+					t.compLex=PR_FALSE;
+					t.comp="PR_FALSE";
+					t.tipo_lexema = "PR_FALSE";
+				}
+				
+				{
+					t.compLex=PR_TRUE;
+					t.comp="PR_TRUE";
+					t.tipo_lexema = "PR_TRUE";
+				}
+				
 				t.pe=buscar(id);
 			    t.compLex=t.pe->compLex;
+				
+				
 			} else {
 				while(c!='\n'){
 			        c=fgetc(archivo);
@@ -308,11 +340,15 @@ void getToken(){
 		} else if (c=='{'){
 
 			t.compLex=L_LLAVE;
+			t.comp="L_LLAVE";
+			t.tipo_lexema="{";
 			t.pe=buscar("{");
 			break;
 		} else if (c=='}'){
 
 			t.compLex=R_LLAVE;
+			t.comp="R_LLAVE";
+			t.tipo_lexema="}";
 			t.pe=buscar("}");
 			break;
 		} else if (c!=EOF){
@@ -332,17 +368,375 @@ void getToken(){
 	{
 		t.compLex=EOF;
 		// strcpy(e.lexema,"EOF");
+		
+		t.comp="EOF";
+		t.tipo_lexema = "EOF";
 		sprintf(e.lexema,"EOF");
 		t.pe=&e;
 	}
 	
 }
 
+/*
+	Seccion del analisador sintactico
+*/
+void imprimir_error(){
+    valido = 0;
+    printf("\nEn la Linea %d: se registro un Error Sintactico. No se esperaba %s. ", numLinea, t.comp);
+}
 
+void machear (int actual) {
+    if (t.compLex = actual) {
+    	sigLex();
+    }
+}
+
+int encontrar_token(int vector[], int N, int comp){
+    int i = 0;
+    while (i < N) {
+        if (vector[i] == comp) {
+            return 1;
+        }
+        i++;
+    }
+    return 0;
+}
+
+void buscar_token(int sincro[], int N) {
+    while (encontrar_token(sincro, N, t.compLex) == 0 && t.compLex != EOF) {
+    	sigLex();
+    }
+    sigLex();
+}
+
+
+void unir_arrays(int primero[], int siguiente[], int N1, int N2) {
+    int nuevo[N1+N2];
+    int i = 0, j = 0;
+    while (i < N1) {
+        if (t.compLex == primero[i]) { return;}
+        i++;
+    }
+    i = 0;
+    while (i < N1) {
+        nuevo[i] = primero[i];
+        i++;
+    }
+    while (j < N2) {
+        nuevo[i] = siguiente[j];
+        i++;
+        j++;
+    }
+    imprimir_error();
+    buscar_token(nuevo, N1+N2);
+}
+
+
+
+void initJson(){
+    int primero[2] = {L_CORCHETE, L_LLAVE};
+    int siguiente[1] = {EOF};
+    unir_arrays(primero, siguiente, 2, 1);//Inicializamos 
+    json_elemento(siguiente, 1);
+}
+
+
+void json_elemento(int sincro[], int N){
+    int primero[2] = {L_CORCHETE, L_LLAVE};
+    int siguiente[4] = {COMA, R_CORCHETE, R_LLAVE, EOF};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 2, N);//Agregamos el siguiente componente
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {//Si es un objeto
+        if (t.compLex == L_LLAVE) {
+            json_objectos(siguiente, 4);
+        }
+        else if (t.compLex == L_CORCHETE) { // si es un array
+            json_array(siguiente, 4);
+        }
+    }
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 4, 2);
+}
+
+
+
+
+void json_name(int sincro[], int N){
+    int primero[1] = {LITERAL_CADENA};
+    int siguiente[1] = {DOS_PUNTOS};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 1, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+}
+    if (is == 0) {
+        if (t.compLex == LITERAL_CADENA){
+            machear(LITERAL_CADENA);
+        }
+    }
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 1, 1);
+}
+
+
+void json_value(int sincro[], int N){
+    int primero[7] = {L_LLAVE, L_CORCHETE, LITERAL_CADENA, LITERAL_NUM, PR_TRUE, PR_FALSE, PR_NULL};
+    int siguiente[2] = {COMA, R_LLAVE};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 7, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {
+        if (t.compLex == L_LLAVE || t.compLex == L_CORCHETE) {
+            json_elemento(siguiente, 2);
+        }
+        else if (t.compLex == LITERAL_CADENA) {
+            machear(LITERAL_CADENA);
+        }
+        else if (t.compLex == LITERAL_NUM) {
+            machear(LITERAL_NUM);
+        }
+        else if (t.compLex == PR_TRUE) {
+            machear(PR_TRUE);
+        }
+        else if (t.compLex == PR_FALSE) {
+            machear(PR_FALSE);
+        }
+        else if (t.compLex == PR_NULL) {
+            machear(PR_NULL);
+        }
+}
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 2, 7);
+}
+
+
+void json_sub_objeto(int sincro[], int N){
+    int primero[2] = {R_LLAVE, LITERAL_CADENA};
+    int siguiente[4] = {COMA, R_CORCHETE, R_LLAVE, EOF};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 2, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {
+        if (t.compLex == R_LLAVE) {
+            machear(R_LLAVE);
+        }
+        else if (t.compLex == LITERAL_CADENA) {
+            json_texto(siguiente, 4);
+            machear(R_LLAVE);
+        }
+    }
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 4, 2);
+}
+
+
+void json_objectos(int sincro[], int N){
+    int primero[1] = {L_LLAVE};
+    int siguiente[4] = {COMA, R_CORCHETE, R_LLAVE, EOF};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 1, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {
+        if (t.compLex == L_LLAVE) {
+            machear(L_LLAVE);
+            json_sub_objeto(siguiente, 4);
+        }
+    }
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 4, 1);
+}
+
+
+void json_array(int sincro[], int N){
+    int primero[1] = {L_CORCHETE};
+    int siguiente[4] = {COMA, R_CORCHETE, R_LLAVE, EOF};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 1, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {
+        if (t.compLex == L_CORCHETE) {
+            machear(L_CORCHETE);
+            json_arr(siguiente, 4);
+        }
+    }
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 4, 1);
+}
+
+
+void json_arr(int sincro[], int N){
+    int primero[3] = {R_CORCHETE, L_CORCHETE, L_LLAVE};
+    int siguiente[4] = {COMA, R_CORCHETE, R_LLAVE, EOF};
+    unir_arrays(primero, sincro, 3, N);
+    if (t.compLex == R_CORCHETE) {
+        machear(R_CORCHETE);
+    }
+    else if (t.compLex == L_LLAVE || t.compLex == L_CORCHETE) {
+        json_tipo_element(siguiente, 4);
+        machear(R_CORCHETE);
+    }
+    unir_arrays(siguiente, primero, 4, 3);
+}
+
+
+void json_texto(int sincro[], int N){
+    int primero[1] = {LITERAL_CADENA};
+    int siguiente[1] = {R_LLAVE};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 1, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {
+        if (t.compLex == LITERAL_CADENA) {
+            json_tipo_attribute(siguiente, 1);
+                    json_atributo(siguiente, 1);
+        }
+    }
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 1, 1);
+}
+
+
+void json_atributo(int sincro[], int N){
+    if (t.compLex == R_LLAVE){
+        return;
+    }
+
+    int primero[1] = {COMA};
+    int siguiente[1] = {R_LLAVE};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 1, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {
+        if (t.compLex == COMA) {
+            machear(COMA);
+            json_tipo_attribute(siguiente, 1);
+            json_atributo(siguiente, 1);
+        }
+    }
+    unir_arrays(siguiente, primero, 1, 1);
+}
+
+void json_tipo_element(int sincro[], int N){
+    int primero[2] = {L_LLAVE, L_CORCHETE};
+    int siguiente[1] = {R_CORCHETE};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 2, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {
+        if (t.compLex == L_CORCHETE || t.compLex == L_LLAVE) {
+            json_elemento(siguiente, 1);
+            json_lista_elem(siguiente, 1);
+        }
+    }
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 1, 2);
+}
+
+void json_lista_elem(int sincro[], int N){
+    if(t.compLex == R_CORCHETE){ 
+       return;
+    }
+    int primero[1] = {COMA};
+    int siguiente[1] = {R_CORCHETE};
+    unir_arrays(primero, sincro, 1, N);
+    if (t.compLex == COMA) {
+        machear(COMA);
+        json_elemento(siguiente, 1);
+        json_lista_elem(siguiente, 1);
+    }
+    unir_arrays(siguiente, primero, 1, 1);
+}
+
+
+void json_tipo_attribute(int sincro[], int N){
+    int primero[1] = {LITERAL_CADENA};
+    int siguiente[2] = {COMA, R_LLAVE};
+    int i = 0, is = 0;
+    unir_arrays(primero, sincro, 1, N);
+    while (i < N) {
+        if (t.compLex == sincro[i]) {
+            is = 1;
+        }
+        i++;
+    }
+    if (is == 0) {
+        if (t.compLex == LITERAL_CADENA) {
+            json_name(siguiente, 2);
+            machear(DOS_PUNTOS);
+            json_value(siguiente, 2);
+        }
+    }
+    else {
+        imprimir_error();
+    }
+    unir_arrays(siguiente, primero, 2, 1);
+}
+
+
+/*IMPRIMIR DATOS*/
 typedef struct {
   int codigo;
   const char* descripcion;
-//} nombreString;
 } nombres;
 
 nombres nombreString[] = {
@@ -380,7 +774,7 @@ void imprimir(int valor){
 
 int main(int argc,char* args[])
 {
-	fichero = fopen("output.txt" , "w"); //Abrimos el archivo de salida
+	fichero = fopen("output.txt" , "w"); 
 
 	// inicializar analizador lexico
 
@@ -394,25 +788,22 @@ int main(int argc,char* args[])
 			printf("Archivo no encontrado.\n");
 			exit(1);
 		}
-		while (t.compLex!=EOF){
-			sigLex();
 		
-			if(x>=0){
-				int j;
-				for (j = 0; j < x; j++){
-						fprintf(fichero,"%c",addEspacio[j]);
-				}
-			}
-			imprimir(t.compLex);
-				
-		}
+		sigLex();
+		initJson();
+
+		if (valido == 1) {
+            printf("\n\nEl fuente es sintacticamente valido\n");
+        }
+		
 		fclose(archivo);
-		fclose(fichero);
-	}else{
+
+		
+	} else {
+
 		printf("Debe pasar como parametro el path al archivo fuente.\n");
 		exit(1);
 	}
 
 	return 0;
 }
-
