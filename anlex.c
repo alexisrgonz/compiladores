@@ -1,9 +1,6 @@
-/*
- *	Analizador Lexico	
- *	Curso: Compiladores y Lenguajes de Bajo de Nivel
- *	Tarea 2
- *	Alumno: Alexis Gonzalez
- */
+/*	Analizador Lexico	
+ 	Curso: Compiladores y Lenguajes de Bajo de Nivel
+ 	Alumno: Alexis Gonzalez		*/
 
 #include "anlex.h"
 
