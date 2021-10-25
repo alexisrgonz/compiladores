@@ -1,7 +1,7 @@
 /*
  *	Analizador Lexico	
  *	Curso: Compiladores y Lenguajes de Bajo de Nivel
- *	Tarea 1
+ *	Tarea 2
  *	Alumno: Alexis Gonzalez
  */
 
