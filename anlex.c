@@ -377,9 +377,8 @@ void sigLex(){
 	
 }
 
-/*
-	Seccion del analisador sintactico
-*/
+// ANALIZADOR SINTACTICO
+
 void imprimir_error(){
     valido = 0;
     printf("\nEn la Linea %d: se registro un Error Sintactico. No se esperaba %s. ", numLinea, t.comp);
