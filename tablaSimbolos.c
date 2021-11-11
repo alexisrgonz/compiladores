@@ -1,6 +1,5 @@
 #include "anlex.h"
 
-/*********************HASH************************/
 entrada *tabla;				//declarar la tabla de simbolos
 int tamTabla=TAMHASH;		//utilizado para cuando se debe hacer rehash
 int elems=0;				//utilizado para cuando se debe hacer rehash
@@ -81,7 +80,7 @@ void insertar(entrada e)
 	tabla[pos]=e;
 
 }
-//busca una clave en la tabla, si no existe devuelve NULL, posicion en caso contrario
+//busca una clave en la tabla
 entrada* buscar(const char *clave)
 {
 	int pos;
@@ -99,15 +98,12 @@ void insertTablaSimbolos(const char *s, int n)
 {
 	entrada e;
 	strcpy(e.lexema,s);
-	// sprintf(e.lexema,s);
 	e.compLex=n;
 	insertar(e);
 }
 
 void initTablaSimbolos()
 {
-	//Eliminamos la esta seccion, porque no es necesario las palabras reservadas
-	//Tokens validos para el lenguaje JSON
 	insertTablaSimbolos("]",L_CORCHETE);
 	insertTablaSimbolos("[", R_CORCHETE);
 	insertTablaSimbolos("}",L_LLAVE );
