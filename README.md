@@ -1,6 +1,8 @@
 # compiladores
-Compiladores FPUNA
-Autor: Alexis González
+Compiladores y Lenguaje de Bajo Nivel
+FPUNA
+Alumno: Alexis Ramon González Franco
 
-Para compilar: gcc anlex.c tablaSimbolos.c -o anlex
-Para ejecutar: ./anlex fuente.txt
+Obs
+$ Para compilar: gcc anlex.c tablaSimbolos.c -o anlex
+$ Para ejecutar: ./anlex fuente.txt
