@@ -1,5 +1,48 @@
-#include "anlex.h"
+// Librerias
+#include<stdio.h>
+#include<string.h>
+#include<stdlib.h>
+#include<ctype.h>
 
+// Constantes
+#define LITERAL_CADENA		1
+#define LITERAL_NUM			2
+#define L_CORCHETE 			3
+#define R_CORCHETE			4
+#define L_LLAVE				5
+#define R_LLAVE				6
+#define COMA				7
+#define DOS_PUNTOS			8
+#define PR_TRUE				9	
+#define PR_FALSE			10
+#define PR_NULL				11
+#define EOF					12
+#define TAMBUFF 	        5
+#define TAMLEX 		        50
+#define TAMHASH 	        101
+
+
+// Estructuras
+typedef struct entrada{
+	int compLex;
+	char lexema[TAMLEX];	
+	struct entrada *tipoDato; 
+	
+} entrada;
+
+typedef struct {
+	int compLex;
+	char *comp;
+	char *tipo_lexema ;
+	entrada *pe;
+} token;
+
+// Prototipos
+void insertar(entrada e);
+entrada* buscar(const char *clave);
+void initTabla();
+void initTablaSimbolos();
+void sigLex();
 entrada *tabla;				//declarar la tabla de simbolos
 int tamTabla=TAMHASH;		//utilizado para cuando se debe hacer rehash
 int elems=0;				//utilizado para cuando se debe hacer rehash
